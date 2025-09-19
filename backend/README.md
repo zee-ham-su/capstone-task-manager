@@ -1,97 +1,132 @@
+# Capstone Task Manager Backend
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<p align="center">A robust and scalable backend for a task management application, built with NestJS. This project provides user authentication, task management, and a notification system for reminders.</p>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+*   **User Authentication**: Secure user registration, login, and password management (forgot/reset password) using JWT.
+*   **User Management**: CRUD operations for user profiles.
+*   **Task Management**: Create, read, update, and delete tasks with due dates and statuses.
+*   **Role-Based Access Control (RBAC)**: Differentiate between user roles (e.g., admin, regular user).
+*   **Notification System**: Email notifications for task reminders and other events, configurable via SMTP.
+*   **Scheduled Tasks**: Automated checks for overdue tasks and upcoming task reminders.
+*   **API Documentation**: Interactive API documentation using Swagger.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Technologies Used
 
-## Project setup
+*   **Framework**: [NestJS](https://nestjs.com/) (Node.js framework)
+*   **Database**: [MongoDB](https://www.mongodb.com/) with [Mongoose](https://mongoosejs.com/) ODM
+*   **Authentication**: [JWT (JSON Web Tokens)](https://jwt.io/)
+*   **Emailing**: [`@nestjs-modules/mailer`](https://www.npmjs.com/package/@nestjs-modules/mailer) with [Handlebars](https://handlebarsjs.com/) templating
+*   **Scheduling**: [`@nestjs/schedule`](https://docs.nestjs.com/techniques/task-scheduling)
+*   **Validation**: [`class-validator`](https://github.com/typestack/class-validator)
+*   **API Docs**: [Swagger](https://swagger.io/)
 
-```bash
-$ npm install
+## Project Setup
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+*   [Node.js](https://nodejs.org/en/) (LTS version recommended)
+*   [npm](https://www.npmjs.com/) (comes with Node.js) or [Yarn](https://yarnpkg.com/)
+*   [MongoDB](https://www.mongodb.com/try/download/community) (local instance or a cloud service like MongoDB Atlas)
+
+### Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd capstone-task-manager/backend
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+
+### Environment Variables
+
+Create a `.env` file in the root of the `backend` directory and populate it with the following variables:
+
+```env
+PORT=3000
+MONGODB_URI_ATLAS=mongodb+srv://<username>:<password>@<cluster-url>/<database-name>?retryWrites=true&w=majority
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRATION_TIME=3600s # e.g., 3600s for 1 hour
+
+# SMTP Configuration for Notifications
+SMTP_HOST=your_smtp_host_address
+SMTP_PORT=your_smtp_port_number # e.g., 587 for TLS, 465 for SSL
+SMTP_USER=your_smtp_username
+SMTP_PASS=your_smtp_password
+EMAIL_FROM=your_sender_email@example.com
 ```
+*   **`PORT`**: The port on which the NestJS application will run.
+*   **`MONGODB_URI_ATLAS`**: Your MongoDB connection string.
+*   **`JWT_SECRET`**: A strong, secret key for signing JWTs.
+*   **`JWT_EXPIRATION_TIME`**: The expiration time for JWTs (e.g., `3600s`, `1h`, `7d`).
+*   **`SMTP_HOST`**: The hostname of your SMTP server (e.g., `smtp.gmail.com`, `smtp.sendgrid.net`).
+*   **`SMTP_PORT`**: The port of your SMTP server. Use `465` for SSL/TLS or `587` for STARTTLS.
+*   **`SMTP_USER`**: The username for your SMTP server (often your email address).
+*   **`SMTP_PASS`**: The password or app-specific password for your SMTP server.
+*   **`EMAIL_FROM`**: The email address that will appear as the sender.
 
-## Compile and run the project
+## Running the Application
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
+# development mode (with watch)
 $ npm run start:dev
 
 # production mode
 $ npm run start:prod
 ```
 
-## Run tests
+The application will typically run on `http://localhost:3000` (or the port specified in your `.env`).
 
-```bash
-# unit tests
-$ npm run test
+## API Endpoints & Documentation
 
-# e2e tests
-$ npm run test:e2e
+The API documentation is available via Swagger UI. Once the application is running, navigate to:
 
-# test coverage
-$ npm run test:cov
-```
+`http://localhost:3000/api`
+
+Here's a brief overview of the main modules and their functionalities:
+
+*   **Auth Module**: Handles user registration, login, and token management.
+    *   `POST /auth/register`: Register a new user.
+    *   `POST /auth/login`: Log in and receive a JWT.
+    *   `POST /auth/forgot-password`: Initiate password reset.
+    *   `POST /auth/reset-password`: Reset password with a token.
+*   **Users Module**: Manages user-related operations.
+    *   `GET /users/profile`: Get current user's profile (requires authentication).
+    *   `PATCH /users/profile`: Update current user's profile (requires authentication).
+    *   `GET /users`: Get all users (admin only).
+    *   `GET /users/:id`: Get user by ID (admin only).
+    *   `PATCH /users/:id`: Update user by ID (admin only).
+    *   `DELETE /users/:id`: Delete user by ID (admin only).
+*   **Tasks Module**: Manages task-related operations.
+    *   `POST /tasks`: Create a new task.
+    *   `GET /tasks`: Get all tasks (with filtering/pagination).
+    *   `GET /tasks/:id`: Get a task by ID.
+    *   `PATCH /tasks/:id`: Update a task by ID.
+    *   `DELETE /tasks/:id`: Delete a task by ID.
+*   **Notification Module**: Handles sending email notifications.
+    *   `POST /notification/email`: Send an email using a specified template and context. This endpoint is useful for external triggers or direct testing.
+
+## Testing
+
+For detailed instructions on how to run and write tests for this project, please refer to the [`testing.md`](./testing.md) file.
 
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
 ## License
 
