@@ -17,7 +17,8 @@ export class TasksController {
   @ApiResponse({ status: 201, description: 'The task has been successfully created.' })
   @ApiResponse({ status: 400, description: 'Invalid input.' })
   create(@Body() createTaskDto: CreateTaskDto, @Request() req) {
-    return this.tasksService.create(createTaskDto, req.user.userId);
+    createTaskDto.userId = req.user.userId; // Assign userId from request
+    return this.tasksService.createTask(createTaskDto);
   }
 
   @Get()
@@ -25,7 +26,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'Return all tasks for the current user.' })
   @ApiQuery({ name: 'tags', required: false, description: 'Comma-separated list of tags to filter by' })
   findAll(@Request() req, @Query('tags') tags?: string) {
-    return this.tasksService.findAll(req.user.userId, tags);
+    return this.tasksService.findAllTasks();
   }
 
   @Get(':id')
@@ -33,7 +34,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'Return the task.' })
   @ApiResponse({ status: 404, description: 'Task not found.' })
   findOne(@Param('id') id: string, @Request() req) {
-    return this.tasksService.findOne(id, req.user.userId);
+    return this.tasksService.findTaskById(id);
   }
 
   @Patch(':id')
@@ -41,7 +42,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'The task has been successfully updated.' })
   @ApiResponse({ status: 404, description: 'Task not found.' })
   update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Request() req) {
-    return this.tasksService.update(id, updateTaskDto, req.user.userId);
+    return this.tasksService.updateTask(id, updateTaskDto);
   }
 
   @Delete(':id')
@@ -49,6 +50,6 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'The task has been successfully deleted.' })
   @ApiResponse({ status: 404, description: 'Task not found.' })
   remove(@Param('id') id: string, @Request() req) {
-    return this.tasksService.remove(id, req.user.userId);
+    return this.tasksService.deleteTask(id);
   }
 }

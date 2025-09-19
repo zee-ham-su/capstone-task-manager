@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsDate, IsEnum, IsArray } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsDate, IsEnum, IsArray, IsMongoId } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum TaskPriority {
@@ -9,6 +9,15 @@ export enum TaskPriority {
 }
 
 export class CreateTaskDto {
+  @ApiProperty({
+    example: '60d0fe4f5e3a66001c8c4a00',
+    description: 'The ID of the user who owns the task',
+    required: false,
+  })
+  @IsOptional()
+  @IsMongoId()
+  userId?: string;
+
   @ApiProperty({
     example: 'Complete project documentation',
     description: 'The title of the task',

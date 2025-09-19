@@ -2,6 +2,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { User } from '../../users/schemas/user.schema';
 
+export enum TaskStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  OVERDUE = 'overdue',
+}
+
 export type TaskDocument = Task & Document;
 
 @Schema({ timestamps: true })
@@ -28,6 +34,9 @@ export class Task {
 
   @Prop({ type: [String], default: [] })
   tags: string[];
+
+  @Prop({ type: String, enum: Object.values(TaskStatus), default: TaskStatus.PENDING })
+  status: TaskStatus;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
