@@ -1,12 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('tasks')
-@ApiBearerAuth() 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
 export class TasksController {
@@ -23,8 +23,9 @@ export class TasksController {
   @Get()
   @ApiOperation({ summary: 'Get all tasks for the current user' })
   @ApiResponse({ status: 200, description: 'Return all tasks for the current user.' })
-  findAll(@Request() req) {
-    return this.tasksService.findAll(req.user.userId);
+  @ApiQuery({ name: 'tags', required: false, description: 'Comma-separated list of tags to filter by' })
+  findAll(@Request() req, @Query('tags') tags?: string) {
+    return this.tasksService.findAll(req.user.userId, tags);
   }
 
   @Get(':id')

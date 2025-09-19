@@ -6,6 +6,8 @@ export type TaskDocument = Task & Document;
 
 @Schema({ timestamps: true })
 export class Task {
+  _id: string; // Added for Mongoose documents
+
   @Prop({ required: true })
   title: string;
 
@@ -23,6 +25,9 @@ export class Task {
 
   @Prop({ default: 'medium', enum: ['low', 'medium', 'high'] })
   priority: string;
+
+  @Prop({ type: [String], default: [] })
+  tags: string[];
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);

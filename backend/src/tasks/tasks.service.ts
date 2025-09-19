@@ -15,8 +15,16 @@ export class TasksService {
     return createdTask.save();
   }
 
-  async findAll(userId: string): Promise<Task[]> {
-    return this.taskModel.find({ userId }).exec();
+  async findAll(userId: string, tags?: string): Promise<Task[]> {
+    const filter: any = { userId };
+    if (tags) {
+      filter.tags = { $in: tags.split(',') };
+    }
+    return this.taskModel.find(filter).exec();
+  }
+
+  async findAllTasks(): Promise<Task[]> {
+    return this.taskModel.find().exec();
   }
 
   async findOne(id: string, userId: string): Promise<Task> {

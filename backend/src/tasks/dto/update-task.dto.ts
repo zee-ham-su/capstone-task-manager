@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean, IsDate, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsDate, IsEnum, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { TaskPriority } from './create-task.dto';
 
@@ -50,4 +50,14 @@ export class UpdateTaskDto {
   @IsOptional()
   @IsEnum(TaskPriority)
   priority?: TaskPriority;
+
+  @ApiProperty({
+    example: ['work', 'project'],
+    description: 'Tags associated with the task',
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 }
