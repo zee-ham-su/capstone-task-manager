@@ -29,6 +29,10 @@ export class UsersService {
     return this.userModel.findOne({ email }).exec();
   }
 
+  async findByPasswordResetToken(token: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ passwordResetToken: token, passwordResetExpires: { $gt: new Date() } }).exec();
+  }
+
   async findAll(): Promise<User[]> {
     return this.userModel.find().exec();
   }

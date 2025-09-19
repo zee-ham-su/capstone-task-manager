@@ -1,8 +1,8 @@
-
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -30,5 +30,50 @@ export class AuthService {
   async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
     return bcrypt.hash(password, saltRounds);
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      // We don't want to reveal that the user does not exist
+      return { message: 'If a user with that email exists, a password reset link has been sent.' };
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const passwordResetToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    const passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.passwordResetToken = passwordResetToken;
+    user.passwordResetExpires = passwordResetExpires;
+    await user.save();
+
+    const resetUrl = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
+    console.log('Password reset link:', resetUrl);
+
+    return { message: 'If a user with that email exists, a password reset link has been sent.' };
+  }
+
+  async resetPassword(token: string, pass: string): Promise<{ message: string }> {
+    const passwordResetToken = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    const user = await this.usersService.findByPasswordResetToken(passwordResetToken);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid or expired token.');
+    }
+
+    user.password = await this.hashPassword(pass);
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    return { message: 'Password has been reset.' };
   }
 }
