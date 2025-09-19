@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { TasksModule } from './tasks/tasks.module';
+import { NotificationModule } from './notification/notification.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -22,6 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     UsersModule,
     AuthModule,
     TasksModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

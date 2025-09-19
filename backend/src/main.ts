@@ -34,6 +34,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('tasks')
     .addTag('users')
+    .addTag('notification')
     .addBearerAuth()
     .build();
 
