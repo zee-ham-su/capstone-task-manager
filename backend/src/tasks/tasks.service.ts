@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -16,21 +15,21 @@ export class TasksService {
     return createdTask.save();
   }
 
-  async findAll(): Promise<Task[]> {
-    return this.taskModel.find().exec();
+  async findAll(userId: string): Promise<Task[]> {
+    return this.taskModel.find({ userId }).exec();
   }
 
-  async findOne(id: string): Promise<Task> {
-    const task = await this.taskModel.findById(id).exec();
+  async findOne(id: string, userId: string): Promise<Task> {
+    const task = await this.taskModel.findOne({ _id: id, userId }).exec();
     if (!task) {
       throw new EntityNotFoundException('Task');
     }
     return task;
   }
 
-  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
+  async update(id: string, updateTaskDto: UpdateTaskDto, userId: string): Promise<Task> {
     const updatedTask = await this.taskModel
-      .findByIdAndUpdate(id, updateTaskDto, { new: true })
+      .findOneAndUpdate({ _id: id, userId }, updateTaskDto, { new: true })
       .exec();
     if (!updatedTask) {
       throw new EntityNotFoundException('Task');
@@ -38,8 +37,8 @@ export class TasksService {
     return updatedTask;
   }
 
-  async remove(id: string): Promise<Task> {
-    const deletedTask = await this.taskModel.findByIdAndDelete(id).exec();
+  async remove(id: string, userId: string): Promise<Task> {
+    const deletedTask = await this.taskModel.findOneAndDelete({ _id: id, userId }).exec();
     if (!deletedTask) {
       throw new EntityNotFoundException('Task');
     }
