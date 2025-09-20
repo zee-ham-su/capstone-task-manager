@@ -1,78 +1,163 @@
 # Testing the Capstone Task Manager Backend
 
-This document outlines the testing strategy and how to run tests for the Capstone Task Manager Backend application.
+This document outlines the testing strategy and provides a guide on how to test each API endpoint for the Capstone Task Manager Backend.
 
-## Overview
+## Testing Strategy
 
-The project utilizes Jest for unit and end-to-end (e2e) testing. Tests are crucial for ensuring the reliability and correctness of the application's features, including authentication, task management, and notifications.
+The project utilizes **Jest** for both unit and end-to-end (e2e) testing. The strategy is as follows:
+
+*   **Unit Tests**: Focus on individual components (services, controllers, guards) in isolation. External dependencies like databases and email services are mocked to ensure tests are fast and predictable.
+*   **End-to-End (E2E) Tests**: Test the full application flow by making HTTP requests to the API endpoints. These tests verify that all components work together correctly, from request to response.
 
 ## Running Tests
 
-You can run various types of tests using the following npm scripts:
+You can run various test suites using the following npm scripts:
 
-*   **Unit Tests**: Focus on individual components (e.g., services, controllers without their HTTP context, utility functions) in isolation.
-    ```bash
-    npm run test
-    ```
+```bash
+# Run all unit tests
+npm run test
 
-*   **End-to-End (e2e) Tests**: Test the entire system or major flows, simulating real user interactions with the API endpoints.
-    ```bash
-    npm run test:e2e
-    ```
+# Run all end-to-end (e2e) tests
+npm run test:e2e
 
-*   **Test Coverage**: Generate a report showing how much of your code is covered by tests.
-    ```bash
-    npm run test:cov
-    ```
+# Generate a test coverage report
+npm run test:cov
+```
 
-## Test File Locations
+## How to Test Each Endpoint
 
-*   **Unit Tests**: Typically located alongside the source files they test, with a `.spec.ts` suffix (e.g., `src/users/users.service.spec.ts`).
-*   **End-to-End Tests**: Located in the `test/` directory, with an `.e2e-spec.ts` suffix (e.g., `test/app.e2e-spec.ts`).
+Below are instructions and examples for testing each endpoint using tools like `curl` or Postman. Replace placeholders like `<your_jwt_token>`, `<user_id>`, and `<task_id>` with actual values.
 
-## Testing Specific Modules
+--- 
 
-### Authentication Module
+### 1. Authentication Module (`/auth`)
 
-*   **Unit Tests**: Verify the logic within `AuthService`, `LocalStrategy`, `JwtStrategy`, and guards.
-*   **E2E Tests**: Test the `/auth/register`, `/auth/login`, `/auth/forgot-password`, and `/auth/reset-password` endpoints to ensure correct user creation, token generation, and password management flows.
-
-### Users Module
-
-*   **Unit Tests**: Validate `UsersService` methods for CRUD operations on users.
-*   **E2E Tests**: Cover API endpoints like `/users/profile` (for authenticated user actions) and `/users` (for admin-level user management).
-
-### Tasks Module
-
-*   **Unit Tests**: Test `TasksService` logic for creating, retrieving, updating, and deleting tasks, including any business rules related to task states or due dates.
-*   **E2E Tests**: Verify the `/tasks` API endpoints for task creation, retrieval, updates, and deletion, ensuring proper authentication and authorization.
-
-### Notification Module
-
-*   **Unit Tests**: You would typically mock the `MailerService` to ensure `NotificationService` correctly calls its methods with the right parameters. This avoids actually sending emails during unit tests.
-*   **E2E Tests**: To test the `/notification/email` endpoint:
-    1.  **Mock Email Sending**: For true e2e tests, you might want to mock the underlying `MailerService` to prevent actual emails from being sent during automated runs. Tools like `jest-mock-extended` or custom mocks can be used.
-    2.  **API Call**: Send a `POST` request to `http://localhost:3000/notification/email` (or your configured port) with a valid `SendEmailDto` payload.
-    3.  **Verification**: Assert that the API returns a success response (e.g., `status 201` or `200` with `{ success: true }`). If you're not mocking the `MailerService`, you would need to check an email inbox (e.g., a test email account or a service like Mailtrap) to verify the email content, which is generally not recommended for automated e2e tests due to external dependencies.
-
-    **Example Payload for E2E Test:**
+#### Register a New User
+*   **Endpoint**: `POST /auth/register`
+*   **Description**: Creates a new user account.
+*   **Request Body**:
     ```json
     {
-      "to": "test@example.com",
-      "subject": "E2E Test Notification",
+      "username": "testuser",
+      "email": "test@example.com",
+      "password": "strongPassword123",
+      "firstName": "Test",
+      "lastName": "User"
+    }
+    ```
+*   **Success Response**: `201 Created` with user data (excluding password).
+
+#### Log In
+*   **Endpoint**: `POST /auth/login`
+*   **Description**: Authenticates a user and returns a JWT.
+*   **Request Body**:
+    ```json
+    {
+      "email": "test@example.com",
+      "password": "strongPassword123"
+    }
+    ```
+*   **Success Response**: `201 Created` with an `access_token`.
+
+--- 
+
+### 2. Users Module (`/users`)
+
+*Authentication: Requires a valid JWT in the `Authorization` header: `Authorization: Bearer <your_jwt_token>`*
+
+#### Get User Profile
+*   **Endpoint**: `GET /users/profile`
+*   **Description**: Retrieves the profile of the currently authenticated user.
+*   **Success Response**: `200 OK` with the user's profile information.
+
+#### Update User Profile
+*   **Endpoint**: `PATCH /users/profile`
+*   **Description**: Updates the profile of the currently authenticated user.
+*   **Request Body**:
+    ```json
+    {
+      "firstName": "UpdatedFirstName"
+    }
+    ```
+*   **Success Response**: `200 OK` with the updated user profile.
+
+#### Get All Users (Admin Only)
+*   **Endpoint**: `GET /users`
+*   **Description**: Retrieves a list of all users. Requires an admin role.
+*   **Success Response**: `200 OK` with an array of user objects.
+
+--- 
+
+### 3. Tasks Module (`/tasks`)
+
+*Authentication: Requires a valid JWT.*
+
+#### Create a New Task
+*   **Endpoint**: `POST /tasks`
+*   **Description**: Creates a new task for the authenticated user.
+*   **Request Body**:
+    ```json
+    {
+      "title": "My New Task",
+      "description": "Complete the project report.",
+      "dueDate": "2025-12-31T23:59:59.000Z"
+    }
+    ```
+*   **Success Response**: `201 Created` with the newly created task object.
+
+#### Get All Tasks
+*   **Endpoint**: `GET /tasks`
+*   **Description**: Retrieves all tasks for the authenticated user. Supports filtering by status.
+*   **Example Query**: `GET /tasks?status=PENDING`
+*   **Success Response**: `200 OK` with an array of tasks.
+
+#### Get a Task by ID
+*   **Endpoint**: `GET /tasks/<task_id>`
+*   **Description**: Retrieves a single task by its ID.
+*   **Success Response**: `200 OK` with the task object.
+
+#### Update a Task
+*   **Endpoint**: `PATCH /tasks/<task_id>`
+*   **Description**: Updates a task's details (e.g., title, status).
+*   **Request Body**:
+    ```json
+    {
+      "status": "COMPLETED"
+    }
+    ```
+*   **Success Response**: `200 OK` with the updated task object.
+
+#### Delete a Task
+*   **Endpoint**: `DELETE /tasks/<task_id>`
+*   **Description**: Deletes a task by its ID.
+*   **Success Response**: `200 OK`.
+
+--- 
+
+### 4. Notification Module (`/notification`)
+
+#### Send a Test Email
+*   **Endpoint**: `POST /notification/email`
+*   **Description**: Sends an email using a specified Handlebars template. Useful for testing the email system.
+*   **Request Body**:
+    ```json
+    {
+      "to": "recipient@example.com",
+      "subject": "Test Email",
       "template": "task-reminder",
       "context": {
         "name": "Test User",
-        "title": "E2E Task",
-        "interval": 5,
-        "dueDate": "2025-09-20 10:00 AM"
+        "title": "Important Task",
+        "interval": 24,
+        "dueDate": "2025-09-21"
       }
     }
     ```
+*   **Success Response**: `201 Created` with `{ "success": true }`.
 
-## Best Practices
+## Testing Best Practices
 
-*   **Mock External Services**: Always mock external dependencies like databases (for unit tests), email services, and third-party APIs to ensure tests are fast, reliable, and isolated.
-*   **Clear Naming**: Use descriptive names for your test files and test cases.
-*   **Arrange-Act-Assert**: Structure your tests clearly into these three phases.
-*   **Test Edge Cases**: Don't forget to test invalid inputs, error conditions, and boundary cases.
+*   **Isolate Tests**: Use mocking for external services (like databases and mailers) in unit tests to keep them fast and deterministic.
+*   **Use a Test Database**: For e2e tests, always run against a dedicated test database to avoid polluting your development or production data.
+*   **Cover Edge Cases**: Write tests for invalid inputs, error responses, and authorization/authentication failures.
+*   **Automate**: Integrate tests into a CI/CD pipeline to ensure code quality and prevent regressions automatically.
