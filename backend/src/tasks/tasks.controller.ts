@@ -17,8 +17,7 @@ export class TasksController {
   @ApiResponse({ status: 201, description: 'The task has been successfully created.' })
   @ApiResponse({ status: 400, description: 'Invalid input.' })
   create(@Body() createTaskDto: CreateTaskDto, @Request() req) {
-    createTaskDto.userId = req.user.userId; // Assign userId from request
-    return this.tasksService.createTask(createTaskDto);
+    return this.tasksService.createTask(createTaskDto, req.user.userId);
   }
 
   @Get()
@@ -26,7 +25,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'Return all tasks for the current user.' })
   @ApiQuery({ name: 'tags', required: false, description: 'Comma-separated list of tags to filter by' })
   findAll(@Request() req, @Query('tags') tags?: string) {
-    return this.tasksService.findAllTasks();
+    return this.tasksService.findAllTasks(req.user.userId, tags);
   }
 
   @Get(':id')
@@ -34,7 +33,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'Return the task.' })
   @ApiResponse({ status: 404, description: 'Task not found.' })
   findOne(@Param('id') id: string, @Request() req) {
-    return this.tasksService.findTaskById(id);
+    return this.tasksService.findTaskById(id, req.user.userId);
   }
 
   @Patch(':id')
@@ -42,7 +41,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'The task has been successfully updated.' })
   @ApiResponse({ status: 404, description: 'Task not found.' })
   update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Request() req) {
-    return this.tasksService.updateTask(id, updateTaskDto);
+    return this.tasksService.updateTask(id, updateTaskDto, req.user.userId);
   }
 
   @Delete(':id')
@@ -50,6 +49,6 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'The task has been successfully deleted.' })
   @ApiResponse({ status: 404, description: 'Task not found.' })
   remove(@Param('id') id: string, @Request() req) {
-    return this.tasksService.deleteTask(id);
+    return this.tasksService.deleteTask(id, req.user.userId);
   }
 }

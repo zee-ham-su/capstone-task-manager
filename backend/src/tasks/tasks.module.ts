@@ -5,11 +5,13 @@ import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 import { TasksScheduler } from './tasks.scheduler';
 import { UsersModule } from '../users/users.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Task.name, schema: TaskSchema }]),
     UsersModule,
+    NotificationModule,
   ],
   controllers: [TasksController],
   providers: [TasksService, TasksScheduler],

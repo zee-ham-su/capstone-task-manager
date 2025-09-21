@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { TasksService } from './tasks.service';
 import { UsersService } from '../users/users.service';
 import { TaskStatus } from './schemas/task.schema';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class TasksScheduler {
@@ -11,6 +12,7 @@ export class TasksScheduler {
   constructor(
     private readonly tasksService: TasksService,
     private readonly usersService: UsersService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -25,13 +27,19 @@ export class TasksScheduler {
     for (const user of users) {
       if (user.notificationEnabled && user.notificationIntervals.length > 0) {
         for (const interval of user.notificationIntervals) {
-          const tasksDueSoon = await this.tasksService.findTasksDueSoon(interval);
+          const tasksDueSoon = await this.tasksService.findTasksDueSoon(user._id, interval);
           for (const task of tasksDueSoon) {
-            // Placeholder for sending notification
-            this.logger.warn(
-              `Task "${task.title}" (ID: ${task._id}) for user ${user.email} is due in ${interval} minutes on ${task.dueDate}`,
+            await this.notificationService.sendEmail(
+              user.email,
+              `Task Reminder: ${task.title}`,
+              'task-reminder',
+              { 
+                name: user.name,
+                title: task.title,
+                interval,
+                dueDate: task.dueDate.toDateString(),
+              },
             );
-            // In a real application, you would send an email/push notification here
           }
         }
       }
@@ -47,7 +55,21 @@ export class TasksScheduler {
     for (const task of overdueTasks) {
       await this.tasksService.updateTaskStatus(task._id, TaskStatus.OVERDUE);
       this.logger.warn(`Task "${task.title}" (ID: ${task._id}) marked as OVERDUE`);
-      // Optionally send an overdue notification here as well
+      
+      const user = await this.usersService.findOne(task.userId as any);
+      if (user && user.notificationEnabled) {
+        await this.notificationService.sendEmail(
+          user.email,
+          `Task Overdue: ${task.title}`,
+          'task-reminder',
+          { 
+            name: user.name,
+            title: task.title,
+            interval: 0, // Overdue tasks have no interval
+            dueDate: task.dueDate.toDateString(),
+          },
+        );
+      }
     }
   }
 }

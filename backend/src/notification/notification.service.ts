@@ -13,6 +13,7 @@ export class NotificationService {
     template: string,
     context: Record<string, any>,
   ): Promise<void> {
+    this.logger.log(`Sending email to ${to} with template: ${template} and context: ${JSON.stringify(context)}`);
     try {
       await this.mailerService.sendMail({
         to,

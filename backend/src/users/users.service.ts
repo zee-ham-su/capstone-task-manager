@@ -6,12 +6,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import { EntityNotFoundException } from '../common/exceptions/entity-not-found.exception';
 import { AuthService } from '../auth/auth.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @Inject(forwardRef(() => AuthService)) private authService: AuthService,
+    private notificationService: NotificationService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -22,7 +24,16 @@ export class UsersService {
       ...createUserDto,
       password: hashedPassword,
     });
-    return createdUser.save();
+    const savedUser = await createdUser.save();
+
+    await this.notificationService.sendEmail(
+      savedUser.email,
+      'Welcome to Task Manager',
+      'welcome',
+      { name: savedUser.name },
+    );
+
+    return savedUser;
   }
 
   async findByEmail(email: string): Promise<UserDocument | null> {
@@ -33,7 +44,7 @@ export class UsersService {
     return this.userModel.findOne({ passwordResetToken: token, passwordResetExpires: { $gt: new Date() } }).exec();
   }
 
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<UserDocument[]> {
     return this.userModel.find().exec();
   }
 

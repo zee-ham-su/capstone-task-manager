@@ -1,4 +1,4 @@
-import { Controller, Request, Post, UseGuards, Body } from '@nestjs/common';
+import { Controller, Request, Post, UseGuards, Body, Get, Query, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -39,6 +39,25 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Password reset link sent.' })
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Get('reset-password')
+  @ApiOperation({ summary: 'Show password reset form' })
+  @ApiResponse({ status: 200, description: 'Password reset form displayed.' })
+  resetPasswordForm(@Query('token') token: string, @Res() res) {
+    res.send(`
+      <html>
+        <body>
+          <h1>Reset Your Password</h1>
+          <form action="/auth/reset-password" method="POST">
+            <input type="hidden" name="token" value="${token}" />
+            <label for="password">New Password:</label>
+            <input type="password" id="password" name="password" required />
+            <button type="submit">Reset Password</button>
+          </form>
+        </body>
+      </html>
+    `);
   }
 
   @Post('reset-password')

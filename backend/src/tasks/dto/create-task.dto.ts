@@ -9,11 +9,6 @@ export enum TaskPriority {
 }
 
 export class CreateTaskDto {
-  @ApiProperty({
-    example: '60d0fe4f5e3a66001c8c4a00',
-    description: 'The ID of the user who owns the task',
-    required: false,
-  })
   @IsOptional()
   @IsMongoId()
   userId?: string;
