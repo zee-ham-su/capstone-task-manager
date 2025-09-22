@@ -39,7 +39,7 @@ export class User {
   @Prop({ default: true })
   notificationEnabled: boolean;
 
-  @Prop({ type: [Number], default: [60 * 24] }) // Default to 24 hours (1440 minutes)
+  @Prop({ type: [Number], default: [30] }) // Default to 30 minutes
   notificationIntervals: number[];
 
   @Prop({ type: String, enum: Object.values(NotificationType), default: NotificationType.EMAIL })

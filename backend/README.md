@@ -4,16 +4,16 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-<p align="center">A robust and scalable backend for a task management application, built with NestJS. This project provides user authentication, task management, and a notification system for reminders.</p>
+<p align="center">A robust and scalable backend for a task management application, built with NestJS. This project provides user authentication, task management, and a flexible notification system for reminders.</p>
 
 ## Features
 
 *   **User Authentication**: Secure user registration, login, and password management (forgot/reset password) using JWT.
-*   **User Management**: CRUD operations for user profiles.
-*   **Task Management**: Create, read, update, and delete tasks with due dates and statuses.
-*   **Role-Based Access Control (RBAC)**: Differentiate between user roles (e.g., admin, regular user).
-*   **Notification System**: Email notifications for task reminders and other events, configurable via SMTP.
-*   **Scheduled Tasks**: Automated checks for overdue tasks and upcoming task reminders.
+*   **User Management**: CRUD operations for user profiles. Users can update their own profile information.
+*   **Task Management**: Create, read, update, and delete tasks with due dates, priorities, tags, and statuses.
+*   **Role-Based Access Control (RBAC)**: Differentiates between user roles (e.g., admin, regular user). Admin users have access to all user data.
+*   **Configurable Notification System**: Email notifications for task reminders. Users can enable or disable notifications and configure their preferred notification intervals (e.g., 30 minutes before a task is due, 1 day before, etc.).
+*   **Scheduled Tasks**: Automated checks for overdue tasks and upcoming task reminders based on user preferences.
 *   **API Documentation**: Interactive API documentation using Swagger.
 
 ## Technologies Used
@@ -106,19 +106,34 @@ Here's a brief overview of the main endpoints:
 |               | `/auth/login`              | `POST` | Log in and receive a JWT                   | Public         |
 |               | `/auth/forgot-password`    | `POST` | Initiate password reset                    | Public         |
 |               | `/auth/reset-password`     | `POST` | Reset password with a token                | Public         |
-| **Users**     | `/users/profile`           | `GET`  | Get current user's profile                | JWT Required   |
-|               | `/users/profile`           | `PATCH`| Update current user's profile             | JWT Required   |
+| **Users**     | `/users/me`                | `GET`  | Get current user's profile                | JWT Required   |
+|               | `/users/me`                | `PATCH`| Update current user's profile             | JWT Required   |
 |               | `/users`                   | `GET`  | Get all users                              | Admin Only     |
 |               | `/users/:id`               | `GET`  | Get user by ID                             | Admin Only     |
 |               | `/users/:id`               | `PATCH`| Update user by ID                          | Admin Only     |
 |               | `/users/:id`               | `DELETE`| Delete user by ID                          | Admin Only     |
 | **Tasks**     | `/tasks`                   | `POST` | Create a new task                          | JWT Required   |
-|               | `/tasks`                   | `GET`  | Get all tasks (with filtering/pagination)| JWT Required   |
+|               | `/tasks`                   | `GET`  | Get all tasks (with filtering by tags)     | JWT Required   |
 |               | `/tasks/:id`               | `GET`  | Get a task by ID                           | JWT Required   |
 |               | `/tasks/:id`               | `PATCH`| Update a task by ID                        | JWT Required   |
 |               | `/tasks/:id`               | `DELETE`| Delete a task by ID                        | JWT Required   |
-| **Notification**| `/notification/email`      | `POST` | Send an email using a template             | Public         |
+| **Notification**| `/notification/email`      | `POST` | Send a test email                          | Public         |
 
+### Updating User Notification Settings
+
+To update your notification settings, send a `PATCH` request to the `/users/me` endpoint with the following optional fields in the request body:
+
+*   `notificationEnabled` (boolean): Enable or disable all notifications.
+*   `notificationIntervals` (array of numbers): An array of intervals in minutes to receive task reminders before the due date. For example: `[30, 1440]` for 30 minutes and 1 day before.
+*   `notificationType` (string): The preferred notification channel. Currently supports `email`.
+
+**Example:**
+```json
+{
+  "notificationEnabled": true,
+  "notificationIntervals": [15, 60, 1440]
+}
+```
 
 ## Testing
 

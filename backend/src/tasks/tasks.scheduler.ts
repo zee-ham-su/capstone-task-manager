@@ -15,7 +15,7 @@ export class TasksScheduler {
     private readonly notificationService: NotificationService,
   ) {}
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async handleCron() {
     this.logger.debug('Running task due soon check');
 
@@ -27,7 +27,7 @@ export class TasksScheduler {
     for (const user of users) {
       if (user.notificationEnabled && user.notificationIntervals.length > 0) {
         for (const interval of user.notificationIntervals) {
-          const tasksDueSoon = await this.tasksService.findTasksDueSoon(user._id, interval);
+          const tasksDueSoon = await this.tasksService.findTasksDueSoon(String(user._id), interval);
           for (const task of tasksDueSoon) {
             await this.notificationService.sendEmail(
               user.email,
@@ -46,7 +46,7 @@ export class TasksScheduler {
     }
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async handleOverdueTasks() {
     this.logger.debug('Running overdue tasks check');
 
