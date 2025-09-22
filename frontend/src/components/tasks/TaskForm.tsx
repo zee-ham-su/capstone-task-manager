@@ -31,7 +31,10 @@ const updateTaskSchema = z.object({
   }),
 });
 
-type TaskFormData = z.infer<typeof createTaskSchema> & { status?: string };
+type TaskFormData = z.infer<typeof createTaskSchema> & { 
+  status?: 'todo' | 'inProgress' | 'done';
+  completed?: boolean;
+};
 
 interface TaskFormProps {
   task?: Task;
@@ -49,7 +52,7 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
     register,
     handleSubmit,
     formState: { errors },
-    reset,
+    reset
   } = useForm<TaskFormData>({
     resolver: zodResolver(isEdit ? updateTaskSchema : createTaskSchema),
     defaultValues: {
@@ -57,6 +60,8 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
       description: task?.description || '',
       dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
       priority: task?.priority || 'medium',
+      status: task?.status || 'todo',
+      completed: task?.completed || false,
       tags: task?.tags?.join(', ') || '',
     },
   });
@@ -65,6 +70,10 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
     const taskData = {
       ...formData,
       tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+      // If status is not provided but completed is, derive status from completed
+      status: formData.status || (formData.completed ? 'done' : 'todo'),
+      // If completed is not provided but status is, derive completed from status
+      completed: formData.completed !== undefined ? formData.completed : formData.status === 'done'
     };
     
     if (onSubmit) {
@@ -168,7 +177,7 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 mt-6 sm:grid-cols-2">
           <div>
             <label htmlFor="status" className="block text-sm font-medium text-gray-700">
               Status
@@ -176,30 +185,45 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
             <select
               id="status"
               {...register('status')}
-              className={`mt-1 block w-full rounded-md ${errors.status ? 'border-red-300' : 'border-gray-300'} py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm`}
+              className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="todo">To Do</option>
               <option value="inProgress">In Progress</option>
               <option value="done">Done</option>
             </select>
+            {errors.status && (
+              <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
+            )}
           </div>
-
-          <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-gray-700">
-              Tags
+          
+          <div className="flex items-center mt-6">
+            <input
+              id="completed"
+              type="checkbox"
+              {...register('completed')}
+              className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+            />
+            <label htmlFor="completed" className="block ml-2 text-sm text-gray-700">
+              Mark as completed
             </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                id="tags"
-                {...register('tags')}
-                className={`block w-full rounded-md ${errors.tags ? 'border-red-300' : 'border-gray-300'} shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm`}
-                placeholder="work, personal, urgent"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Separate tags with commas
-              </p>
-            </div>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="tags" className="block text-sm font-medium text-gray-700">
+            Tags
+          </label>
+          <div className="mt-1">
+            <input
+              type="text"
+              id="tags"
+              {...register('tags')}
+              className={`block w-full rounded-md ${errors.tags ? 'border-red-300' : 'border-gray-300'} shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm`}
+              placeholder="work, personal, urgent"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Separate tags with commas
+            </p>
           </div>
         </div>
       </div>

@@ -1,14 +1,47 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { tasksApi } from '@/api/tasks';
 import { format } from 'date-fns';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, FunnelIcon } from '@heroicons/react/24/outline';
 
 export default function HomePage() {
-  const { data: tasks, isLoading } = useQuery({
+  const { 
+    data: tasksResponse, 
+    isLoading, 
+    error,
+    isError
+  } = useQuery({
     queryKey: ['recent-tasks'],
-    queryFn: () => tasksApi.getTasks({ limit: '5', sort: '-dueDate' }),
+    queryFn: async () => {
+      try {
+        console.log('Fetching tasks...');
+        const response = await tasksApi.getTasks({ limit: '5', sort: '-dueDate' });
+        console.log('Tasks response:', response);
+        return response;
+      } catch (err) {
+        console.error('Error in queryFn:', err);
+        // Return empty result instead of throwing to prevent UI crash
+        return {
+          data: [],
+          meta: { total: 0, page: 1, limit: 5, totalPages: 0 }
+        };
+      }
+    },
+    retry: 1,
+    refetchOnWindowFocus: false
   });
+
+  // Safely extract tasks and total count
+  const tasks = tasksResponse?.data || [];
+  const totalTasks = tasksResponse?.meta?.total || 0;
+  
+  // Log for debugging
+  React.useEffect(() => {
+    if (isError) {
+      console.error('Error in useQuery:', error);
+    }
+  }, [isError, error]);
 
   return (
     <div className="space-y-8">
@@ -46,7 +79,7 @@ export default function HomePage() {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {isLoading ? '...' : tasks?.meta?.total || 0}
+                      {isLoading ? '...' : totalTasks}
                     </div>
                   </dd>
                 </dl>
@@ -93,13 +126,14 @@ export default function HomePage() {
                     <div className="text-2xl font-semibold text-gray-900">
                       {isLoading
                         ? '...'
-                        : tasks?.data?.filter(
+                        : tasks.filter(
                             (task) =>
                               task.dueDate &&
                               new Date(task.dueDate) > new Date() &&
                               new Date(task.dueDate) <=
-                                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                          ).length || 0}
+                                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) &&
+                              !task.completed
+                          ).length}
                     </div>
                   </dd>
                 </dl>
@@ -146,8 +180,7 @@ export default function HomePage() {
                     <div className="text-2xl font-semibold text-gray-900">
                       {isLoading
                         ? '...'
-                        : tasks?.data?.filter((task) => task.status === 'done')
-                            .length || 0}
+                        : tasks.filter((task) => task.completed).length}
                     </div>
                   </dd>
                 </dl>
@@ -187,9 +220,17 @@ export default function HomePage() {
             <div className="flex justify-center py-12">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
             </div>
-          ) : tasks?.data && tasks.data.length > 0 ? (
+          ) : isError ? (
+            <div className="text-center py-8 px-4">
+              <FunnelIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading tasks</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {error instanceof Error ? error.message : 'Failed to load tasks. Please try again.'}
+              </p>
+            </div>
+          ) : tasks && tasks.length > 0 ? (
             <ul className="divide-y divide-gray-200">
-              {tasks.data.map((task) => (
+              {tasks.map((task) => (
                 <li key={task.id}>
                   <Link
                     to={`/tasks/${task.id}`}
@@ -197,9 +238,27 @@ export default function HomePage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-primary-600 truncate">
-                          {task.title}
-                        </p>
+                        <div className="flex items-center">
+                          {task.completed && (
+                            <svg 
+                              className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              viewBox="0 0 20 20" 
+                              fill="currentColor"
+                            >
+                              <path 
+                                fillRule="evenodd" 
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" 
+                                clipRule="evenodd" 
+                              />
+                            </svg>
+                          )}
+                          <p className={`text-sm font-medium ${
+                            task.completed ? 'text-gray-500 line-through' : 'text-primary-600'
+                          } truncate`}>
+                            {task.title}
+                          </p>
+                        </div>
                         <p className="mt-1 flex items-center text-sm text-gray-500">
                           {task.description && (
                             <span className="truncate">{task.description}</span>
@@ -245,10 +304,8 @@ export default function HomePage() {
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                aria-hidden="true"
               >
                 <path
-                  vectorEffect="non-scaling-stroke"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}

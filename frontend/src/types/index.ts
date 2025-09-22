@@ -20,17 +20,35 @@ export interface UpdateUserDto {
 }
 
 // Task Types
-export interface Task {
-  id: string;
+// Backend API Task type
+export interface ApiTask {
+  _id: string;
   title: string;
   description?: string;
   dueDate?: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'todo' | 'inProgress' | 'done';
+  status?: 'todo' | 'inProgress' | 'done';
+  completed: boolean;
   tags?: string[];
   userId: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// Frontend Task type with mapped fields
+export interface Task extends Omit<ApiTask, '_id'> {
+  id: string;
+}
+
+// Response type for paginated task lists
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export interface CreateTaskDto {

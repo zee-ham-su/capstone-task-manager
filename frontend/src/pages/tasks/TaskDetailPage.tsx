@@ -8,7 +8,6 @@ import { TrashIcon, PencilIcon, ArrowLeftIcon } from '@heroicons/react/24/outlin
 import TaskForm from '@/components/tasks/TaskForm';
 
 type Priority = 'low' | 'medium' | 'high';
-type Status = 'todo' | 'inProgress' | 'done';
 
 const priorityColors: Record<Priority, string> = {
   low: 'bg-blue-100 text-blue-800',
@@ -16,11 +15,7 @@ const priorityColors: Record<Priority, string> = {
   high: 'bg-red-100 text-red-800',
 };
 
-const statusColors: Record<Status, string> = {
-  todo: 'bg-gray-100 text-gray-800',
-  inProgress: 'bg-blue-100 text-blue-800',
-  done: 'bg-green-100 text-green-800',
-};
+// Status colors are now handled by getStatusColor function
 
 // Removed unused LocationState interface
 
@@ -54,6 +49,7 @@ export default function TaskDetailPage({ isNew = false }: TaskDetailPageProps) {
     title: '',
     description: '',
     status: 'todo',
+    completed: false,
     priority: 'medium',
     dueDate: new Date().toISOString().split('T')[0],
     tags: [],
@@ -95,6 +91,32 @@ export default function TaskDetailPage({ isNew = false }: TaskDetailPageProps) {
     queryClient.invalidateQueries({ queryKey: ['task', id] });
   };
 
+
+  const getStatusText = (status?: string, completed?: boolean) => {
+    if (completed) return 'Completed';
+    switch (status) {
+      case 'inProgress':
+        return 'In Progress';
+      case 'done':
+        return 'Done';
+      case 'todo':
+      default:
+        return 'To Do';
+    }
+  };
+
+  const getStatusColor = (status?: string, completed?: boolean) => {
+    if (completed) return 'bg-green-100 text-green-800';
+    switch (status) {
+      case 'inProgress':
+        return 'bg-blue-100 text-blue-800';
+      case 'done':
+        return 'bg-green-100 text-green-800';
+      case 'todo':
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   if (isLoading && !isCreating) {
     return (
@@ -202,12 +224,28 @@ export default function TaskDetailPage({ isNew = false }: TaskDetailPageProps) {
             <div className="mt-2 flex items-center space-x-4">
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  statusColors[task.status as Status] || 'bg-gray-100 text-gray-800'
+                  getStatusColor(task.status, task.completed)
                 }`}
               >
-                {task.status?.replace(/^\w/, (c: string) => c.toUpperCase())}
+                {getStatusText(task.status, task.completed)}
               </span>
+              {task.priority && (
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    priorityColors[task.priority as Priority] || 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                </span>
+              )}
             </div>
+            {task.dueDate && (
+              <div className="mt-2">
+                <span className="text-sm text-gray-500">
+                  Due: {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex space-x-3">
             <button
@@ -227,27 +265,6 @@ export default function TaskDetailPage({ isNew = false }: TaskDetailPageProps) {
               Delete
             </button>
           </div>
-        </div>
-        <div className="mt-4 flex items-center space-x-4">
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-              statusColors[task.status as Status] || 'bg-gray-100 text-gray-800'
-            }`}
-          >
-            {task.status?.replace(/^\w/, (c: string) => c.toUpperCase())}
-          </span>
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-              priorityColors[task.priority as Priority] || 'bg-gray-100 text-gray-800'
-            }`}
-          >
-            {task.priority?.charAt(0).toUpperCase() + task.priority?.slice(1)}
-          </span>
-          {task.dueDate && (
-            <span className="text-sm text-gray-500">
-              Due: {format(new Date(task.dueDate), 'MMM d, yyyy')}
-            </span>
-          )}
         </div>
       </div>
 

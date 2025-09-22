@@ -12,10 +12,27 @@ const priorityColors = {
   high: 'bg-red-100 text-red-800',
 };
 
-const statusColors = {
+type TaskStatus = 'todo' | 'inProgress' | 'done' | 'pending';
+
+const statusColors: Record<TaskStatus, string> = {
   todo: 'bg-gray-100 text-gray-800',
   inProgress: 'bg-blue-100 text-blue-800',
   done: 'bg-green-100 text-green-800',
+  pending: 'bg-yellow-100 text-yellow-800',
+};
+
+const getStatusDisplay = (status: string | undefined) => {
+  switch (status) {
+    case 'inProgress':
+      return 'In Progress';
+    case 'done':
+      return 'Done';
+    case 'pending':
+      return 'Pending';
+    case 'todo':
+    default:
+      return 'To Do';
+  }
 };
 
 export default function TaskList({ tasks }: TaskListProps) {
@@ -105,10 +122,11 @@ export default function TaskList({ tasks }: TaskListProps) {
                   <div>
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        statusColors[task.status]
+                        task.status && statusColors[task.status as TaskStatus] ? 
+                        statusColors[task.status as TaskStatus] : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {task.status}
+                      {getStatusDisplay(task.status)}
                     </span>
                   </div>
                 </div>
