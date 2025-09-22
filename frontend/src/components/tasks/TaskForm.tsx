@@ -31,9 +31,10 @@ const updateTaskSchema = z.object({
   }),
 });
 
-type TaskFormData = z.infer<typeof createTaskSchema> & { 
-  status?: 'todo' | 'inProgress' | 'done';
-};
+type TaskFormData = z.infer<typeof createTaskSchema> & (
+  | { status?: 'todo' | 'inProgress' | 'done' }
+  | { status?: never }
+);
 
 interface TaskFormProps {
   task?: Task;
@@ -59,8 +60,8 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
       description: task?.description || '',
       dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
       priority: task?.priority || 'medium',
-      status: task?.status || 'todo',
       tags: task?.tags?.join(', ') || '',
+      ...(isEdit && { status: task?.status || 'todo' }),
     },
   });
 
@@ -71,10 +72,7 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
       tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : []
     };
     
-    // Only include completed field if we're editing an existing task
-    if (isEdit) {
-      taskData.completed = formData.status === 'done';
-    }
+
     
     if (onSubmit) {
       onSubmit(taskData);
@@ -177,25 +175,27 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 mt-6 sm:grid-cols-2">
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-              Status
-            </label>
-            <select
-              id="status"
-              {...register('status')}
-              className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            >
-              <option value="todo">To Do</option>
-              <option value="inProgress">In Progress</option>
-              <option value="done">Done</option>
-            </select>
-            {errors.status && (
-              <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
-            )}
+        {isEdit && (
+          <div className="grid grid-cols-1 gap-6 mt-6 sm:grid-cols-2">
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                Status
+              </label>
+              <select
+                id="status"
+                {...register('status')}
+                className="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option value="todo">To Do</option>
+                <option value="inProgress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+              {errors.status && (
+                <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div>
           <label htmlFor="tags" className="block text-sm font-medium text-gray-700">

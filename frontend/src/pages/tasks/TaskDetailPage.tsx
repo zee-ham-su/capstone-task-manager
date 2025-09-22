@@ -69,9 +69,7 @@ export default function TaskDetailPage({ isNew = false }: TaskDetailPageProps) {
   const createOrUpdateMutation = useMutation({
     mutationFn: (data: any) => {
       if (isCreating) {
-        // Remove status field when creating a new task
-        const { status, ...taskData } = data;
-        return tasksApi.createTask(taskData);
+        return tasksApi.createTask(data);
       } else {
         return tasksApi.updateTask(id!, data);
       }
