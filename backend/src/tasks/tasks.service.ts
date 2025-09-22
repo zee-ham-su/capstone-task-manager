@@ -6,6 +6,11 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { UsersService } from '../users/users.service';
 
+/**
+ * Service responsible for handling task-related operations
+ * @class TasksService
+ * @decorator @Injectable()
+ */
 @Injectable()
 export class TasksService {
   constructor(
@@ -13,6 +18,13 @@ export class TasksService {
     private readonly usersService: UsersService,
   ) {}
 
+  /**
+   * Retrieves all tasks for a specific user, optionally filtered by tags
+   * @param {string} userId - The ID of the user whose tasks to retrieve
+   * @param {string} [tags] - Optional comma-separated list of tags to filter by
+   * @returns {Promise<Task[]>} A promise that resolves to an array of tasks
+   * @throws {NotFoundException} If no tasks are found for the user
+   */
   async findAllTasks(userId: string, tags?: string): Promise<Task[]> {
     const filter: any = { userId };
     if (tags) {
@@ -50,11 +62,26 @@ export class TasksService {
     return task;
   }
 
+  /**
+   * Creates a new task
+   * @param {CreateTaskDto} createTaskDto - The data for creating a new task
+   * @param {string} userId - The ID of the user who owns the task
+   * @returns {Promise<Task>} A promise that resolves to the created task
+   */
   async createTask(createTaskDto: CreateTaskDto, userId: string): Promise<Task> {
     const createdTask = new this.taskModel({ ...createTaskDto, userId });
     return createdTask.save();
   }
 
+  /**
+   * Updates an existing task
+   * @param {string} id - The ID of the task to update
+   * @param {UpdateTaskDto} updateTaskDto - The data to update the task with
+   * @param {string} userId - The ID of the user who owns the task
+   * @returns {Promise<Task>} A promise that resolves to the updated task
+   * @throws {NotFoundException} If the task is not found
+   * @throws {ForbiddenException} If the user is not authorized to update the task
+   */
   async updateTask(id: string, updateTaskDto: UpdateTaskDto, userId: string): Promise<Task> {
     // Ensure 'status' is not present in the update payload, as it's managed internally or via 'completed'
     const updatePayload: any = { ...updateTaskDto };
@@ -79,6 +106,13 @@ export class TasksService {
     return existingTask;
   }
 
+  /**
+   * Updates the status of a task
+   * @param {string} taskId - The ID of the task to update
+   * @param {TaskStatus} status - The new status of the task
+   * @returns {Promise<Task>} A promise that resolves to the updated task
+   * @throws {NotFoundException} If the task is not found
+   */
   async updateTaskStatus(taskId: string, status: TaskStatus): Promise<Task> {
     const existingTask = await this.taskModel
       .findByIdAndUpdate(taskId, { status }, { new: true })
@@ -89,6 +123,14 @@ export class TasksService {
     return existingTask;
   }
 
+  /**
+   * Deletes a task
+   * @param {string} id - The ID of the task to delete
+   * @param {string} userId - The ID of the user who owns the task
+   * @returns {Promise<any>} A promise that resolves when the task is deleted
+   * @throws {NotFoundException} If the task is not found
+   * @throws {ForbiddenException} If the user is not authorized to delete the task
+   */
   async deleteTask(id: string, userId: string): Promise<any> {
     const result = await this.taskModel.deleteOne({ _id: id, userId }).exec();
     if (result.deletedCount === 0) {

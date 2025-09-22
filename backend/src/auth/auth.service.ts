@@ -4,6 +4,11 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
+/**
+ * Service responsible for handling authentication-related operations
+ * @class AuthService
+ * @decorator @Injectable()
+ */
 @Injectable()
 export class AuthService {
   constructor(
@@ -11,6 +16,12 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  /**
+   * Validates a user's credentials
+   * @param {string} email - The user's email address
+   * @param {string} pass - The plain text password to validate
+   * @returns {Promise<any>} The user object without the password if valid, null otherwise
+   */
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await bcrypt.compare(pass, user.password))) {
@@ -20,6 +31,11 @@ export class AuthService {
     return null;
   }
 
+  /**
+   * Generates a JWT token for an authenticated user
+   * @param {any} user - The authenticated user object
+   * @returns {Object} An object containing the JWT access token
+   */
   async login(user: any) {
     const payload = { email: user._doc.email, sub: user._doc._id };
     return {
@@ -27,6 +43,11 @@ export class AuthService {
     };
   }
 
+  /**
+   * Hashes a plain text password using bcrypt
+   * @param {string} password - The plain text password to hash
+   * @returns {Promise<string>} A promise that resolves to the hashed password
+   */
   async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
     return bcrypt.hash(password, saltRounds);

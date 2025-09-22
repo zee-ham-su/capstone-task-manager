@@ -34,13 +34,47 @@ type TaskFormData = z.infer<typeof createTaskSchema> & {
   completed?: boolean;
 };
 
+/**
+ * Props for the TaskForm component
+ * @interface TaskFormProps
+ * @property {Task} [task] - The task to edit (if in edit mode)
+ * @property {() => void} [onSuccess] - Callback function called after successful form submission
+ * @property {(data: CreateTaskDto | UpdateTaskDto) => void} onSubmit - Function to handle form submission
+ * @property {boolean} [isSubmitting] - Whether the form is currently submitting
+ */
 interface TaskFormProps {
+  /**
+   * The task to edit (if in edit mode)
+   */
   task?: Task;
+  /**
+   * Callback function called after successful form submission
+   */
   onSuccess?: () => void;
-  onSubmit: (data: any) => void;
+  /**
+   * Function to handle form submission
+   */
+  onSubmit: (data: CreateTaskDto | UpdateTaskDto) => void;
+  /**
+   * Whether the form is currently submitting
+   */
   isSubmitting?: boolean;
 }
 
+/**
+ * A form component for creating or editing a task
+ * @component
+ * @param {TaskFormProps} props - The component props
+ * @returns {JSX.Element} The rendered form component
+ * 
+ * @example
+ * // Create a new task
+ * <TaskForm onSubmit={handleSubmit} />
+ * 
+ * @example
+ * // Edit an existing task
+ * <TaskForm task={task} onSubmit={handleUpdate} />
+ */
 export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: TaskFormProps) {
   const isEdit = Boolean(task?.id); // Only true if we have a task with an ID
   const navigate = useNavigate();
@@ -63,6 +97,10 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
     },
   });
 
+  /**
+   * Handles form submission by processing the form data and calling the onSubmit callback
+   * @param {TaskFormData} formData - The raw form data
+   */
   const handleFormSubmit = (formData: TaskFormData) => {
     const { title, description, dueDate, priority, tags, status } = formData;
 
