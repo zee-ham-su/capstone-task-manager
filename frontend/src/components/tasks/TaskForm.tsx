@@ -33,7 +33,6 @@ const updateTaskSchema = z.object({
 
 type TaskFormData = z.infer<typeof createTaskSchema> & { 
   status?: 'todo' | 'inProgress' | 'done';
-  completed?: boolean;
 };
 
 interface TaskFormProps {
@@ -44,7 +43,7 @@ interface TaskFormProps {
 }
 
 export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: TaskFormProps) {
-  const isEdit = !!task;
+  const isEdit = Boolean(task?.id); // Only true if we have a task with an ID
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
@@ -61,20 +60,21 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
       dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
       priority: task?.priority || 'medium',
       status: task?.status || 'todo',
-      completed: task?.completed || false,
       tags: task?.tags?.join(', ') || '',
     },
   });
 
   const handleFormSubmit = (formData: TaskFormData) => {
-    const taskData = {
+    // Create base task data without the completed field
+    const taskData: any = {
       ...formData,
-      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
-      // If status is not provided but completed is, derive status from completed
-      status: formData.status || (formData.completed ? 'done' : 'todo'),
-      // If completed is not provided but status is, derive completed from status
-      completed: formData.completed !== undefined ? formData.completed : formData.status === 'done'
+      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : []
     };
+    
+    // Only include completed field if we're editing an existing task
+    if (isEdit) {
+      taskData.completed = formData.status === 'done';
+    }
     
     if (onSubmit) {
       onSubmit(taskData);
@@ -194,18 +194,6 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
             {errors.status && (
               <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
             )}
-          </div>
-          
-          <div className="flex items-center mt-6">
-            <input
-              id="completed"
-              type="checkbox"
-              {...register('completed')}
-              className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-            />
-            <label htmlFor="completed" className="block ml-2 text-sm text-gray-700">
-              Mark as completed
-            </label>
           </div>
         </div>
 
