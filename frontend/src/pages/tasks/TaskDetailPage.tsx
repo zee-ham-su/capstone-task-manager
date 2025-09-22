@@ -90,12 +90,12 @@ export default function TaskDetailPage({ isNew = false }: TaskDetailPageProps) {
   };
 
 
-  const getStatusText = (status?: string, completed?: boolean) => {
-    if (completed) return 'Completed';
-    switch (status) {
+  const getStatusText = (task: Task) => {
+    if (task.completed) return 'Completed';
+    switch (task.status) {
       case 'inProgress':
         return 'In Progress';
-      case 'done':
+      case 'done': // If not completed, but status is done, it's still considered done
         return 'Done';
       case 'todo':
       default:
@@ -103,12 +103,12 @@ export default function TaskDetailPage({ isNew = false }: TaskDetailPageProps) {
     }
   };
 
-  const getStatusColor = (status?: string, completed?: boolean) => {
-    if (completed) return 'bg-green-100 text-green-800';
-    switch (status) {
+  const getStatusColor = (task: Task) => {
+    if (task.completed) return 'bg-green-100 text-green-800';
+    switch (task.status) {
       case 'inProgress':
         return 'bg-blue-100 text-blue-800';
-      case 'done':
+      case 'done': // If not completed, but status is done, it's still considered done
         return 'bg-green-100 text-green-800';
       case 'todo':
       default:
@@ -222,10 +222,10 @@ export default function TaskDetailPage({ isNew = false }: TaskDetailPageProps) {
             <div className="mt-2 flex items-center space-x-4">
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  getStatusColor(task.status, task.completed)
+                  getStatusColor(task)
                 }`}
               >
-                {getStatusText(task.status, task.completed)}
+                {getStatusText(task)}
               </span>
               {task.priority && (
                 <span

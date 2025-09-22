@@ -85,6 +85,60 @@ In today's fast-paced world, having a centralized system for managing tasks and 
    - Refine prompts based on outcomes
    - Build a custom knowledge base for project-specific patterns
 
+## 🤖 AI Tools and Contexts
+
+### Development Tools
+- **GitHub Copilot**
+  - Integrated directly in VS Code
+  - Used for code completion and generation
+  - Context: Entire codebase, current file, and related files
+
+- **VS Code AI Tools**
+  - Code explanations
+  - Refactoring suggestions
+  - Debugging assistance
+
+### Context Management
+1. **File Context**
+   - Current file being edited
+   - Related component files (e.g., .tsx and .test.tsx pairs)
+   - Imported modules and their types
+
+2. **Project Context**
+   - TypeScript type definitions
+   - Component hierarchy
+   - State management patterns
+   - API service definitions
+
+3. **Task Context**
+   - Current feature/branch being developed
+   - Related GitHub issues/PRs
+   - Recent changes in the codebase
+
+### Best Practices
+1. **Prompt Engineering**
+   - Be specific about the desired outcome
+   - Include relevant code context
+   - Specify the programming language and framework
+   - Mention any constraints or requirements
+
+2. **Code Review**
+   - Always review AI-generated code
+   - Verify security implications
+   - Check for performance optimizations
+   - Ensure consistency with project patterns
+
+3. **Documentation**
+   - Document AI-assisted sections
+   - Add comments for complex logic
+   - Keep track of AI-generated code patterns
+
+### Limitations and Considerations
+- **Context Window**: Be aware of token limits when providing context
+- **Accuracy**: Verify all AI suggestions before committing
+- **Security**: Never include sensitive information in prompts
+- **Performance**: Be mindful of potential performance impacts of AI-generated code
+
 ## 🚀 Development Phases
 
 1. **Setup & Foundation** (Week 1)

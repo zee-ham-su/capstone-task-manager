@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Task, CreateTaskDto, UpdateTaskDto, PaginatedResponse, ApiTask } from '@/types';
+import { Task, CreateTaskDto, UpdateTaskDto, PaginatedResponse, ApiTask, TaskSummary } from '@/types';
 
 // Helper function to map API task to frontend task
 const mapApiTaskToTask = (apiTask: ApiTask): Task => {
@@ -95,5 +95,11 @@ export const tasksApi = {
   // Delete a task
   deleteTask: async (id: string): Promise<{ message: string }> => {
     return apiClient.delete(`/tasks/${id}`);
+  },
+
+  // Get task summary counts
+  getTaskSummary: async (): Promise<TaskSummary> => {
+    const response = await apiClient.get<TaskSummary>('/tasks/summary');
+    return response;
   },
 };

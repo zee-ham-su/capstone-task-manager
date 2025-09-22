@@ -56,7 +56,6 @@ export interface CreateTaskDto {
   description?: string;
   dueDate?: string;
   priority?: 'low' | 'medium' | 'high';
-  status?: 'todo' | 'inProgress' | 'done';
   tags?: string[];
 }
 
@@ -65,7 +64,7 @@ export interface UpdateTaskDto {
   description?: string;
   dueDate?: string;
   priority?: 'low' | 'medium' | 'high';
-  status?: 'todo' | 'inProgress' | 'done';
+  completed?: boolean;
   tags?: string[];
 }
 
@@ -111,4 +110,10 @@ export interface SendEmailDto {
   subject: string;
   template: string;
   context: Record<string, any>;
+}
+
+export interface TaskSummary {
+  totalTasks: number;
+  dueSoonTasks: number;
+  completedTasks: number;
 }

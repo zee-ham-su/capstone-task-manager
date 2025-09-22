@@ -28,6 +28,21 @@ export class TasksController {
     return this.tasksService.findAllTasks(req.user.userId, tags);
   }
 
+  @Get('/summary')
+  @ApiOperation({ summary: 'Get task summary counts for the current user' })
+  @ApiResponse({ status: 200, description: 'Return task summary counts.' })
+  async getTaskSummary(@Request() req) {
+    const userId = req.user.userId;
+    const totalTasks = await this.tasksService.getTotalTasksCount(userId);
+    const dueSoonTasks = await this.tasksService.getDueSoonTasksCount(userId);
+    const completedTasks = await this.tasksService.getCompletedTasksCount(userId);
+    return {
+      totalTasks,
+      dueSoonTasks,
+      completedTasks,
+    };
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a task by id' })
   @ApiResponse({ status: 200, description: 'Return the task.' })
@@ -36,19 +51,4 @@ export class TasksController {
     return this.tasksService.findTaskById(id, req.user.userId);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update a task' })
-  @ApiResponse({ status: 200, description: 'The task has been successfully updated.' })
-  @ApiResponse({ status: 404, description: 'Task not found.' })
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Request() req) {
-    return this.tasksService.updateTask(id, updateTaskDto, req.user.userId);
-  }
-
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a task' })
-  @ApiResponse({ status: 200, description: 'The task has been successfully deleted.' })
-  @ApiResponse({ status: 404, description: 'Task not found.' })
-  remove(@Param('id') id: string, @Request() req) {
-    return this.tasksService.deleteTask(id, req.user.userId);
-  }
 }

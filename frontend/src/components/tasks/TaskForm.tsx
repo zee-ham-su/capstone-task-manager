@@ -26,15 +26,13 @@ const createTaskSchema = z.object({
 // Schema for updating a task (includes status)
 const updateTaskSchema = z.object({
   ...baseTaskSchema,
-  status: z.enum(['todo', 'inProgress', 'done'], {
-    required_error: 'Status is required',
-  }),
+  completed: z.boolean().optional(),
 });
 
-type TaskFormData = z.infer<typeof createTaskSchema> & (
-  | { status?: 'todo' | 'inProgress' | 'done' }
-  | { status?: never }
-);
+type TaskFormData = z.infer<typeof createTaskSchema> & {
+  status?: 'todo' | 'inProgress' | 'done';
+  completed?: boolean;
+};
 
 interface TaskFormProps {
   task?: Task;
@@ -66,14 +64,24 @@ export default function TaskForm({ task, onSuccess, onSubmit, isSubmitting }: Ta
   });
 
   const handleFormSubmit = (formData: TaskFormData) => {
-    // Create base task data without the completed field
-    const taskData: any = {
-      ...formData,
-      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : []
+    const { title, description, dueDate, priority, tags, status } = formData;
+
+    const processedTags = tags ? tags.split(',').map(tag => tag.trim()) : [];
+
+    let taskData: Partial<CreateTaskDto & UpdateTaskDto> = {
+      title,
+      description,
+      dueDate,
+      priority,
+      tags: processedTags,
     };
     
-
-    
+    if (isEdit) {
+      taskData.completed = status === 'done';
+    } else {
+      // Ensure no completed field is sent for creation
+      delete taskData.completed;
+    }
     if (onSubmit) {
       onSubmit(taskData);
     } else if (isEdit && task) {

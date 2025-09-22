@@ -56,9 +56,20 @@ export class TasksService {
   }
 
   async updateTask(id: string, updateTaskDto: UpdateTaskDto, userId: string): Promise<Task> {
+    // Ensure 'status' is not present in the update payload, as it's managed internally or via 'completed'
+    const updatePayload: any = { ...updateTaskDto };
+    if ('status' in updatePayload) {
+      delete updatePayload.status;
+    }
+
+    // Update status based on completed field
+    if (typeof updatePayload.completed === 'boolean') {
+      updatePayload.status = updatePayload.completed ? TaskStatus.COMPLETED : TaskStatus.PENDING;
+    }
+
     const existingTask = await this.taskModel.findOneAndUpdate(
       { _id: id, userId },
-      updateTaskDto,
+      updatePayload,
       { new: true },
     ).exec();
 
@@ -84,5 +95,25 @@ export class TasksService {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
     return { message: `Task with ID ${id} deleted successfully` };
+  }
+
+  async getTotalTasksCount(userId: string): Promise<number> {
+    return this.taskModel.countDocuments({ userId }).exec();
+  }
+
+  async getDueSoonTasksCount(userId: string): Promise<number> {
+    const now = new Date();
+    const future = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+
+    return this.taskModel.countDocuments({
+      userId,
+      dueDate: { $gt: now, $lte: future },
+      completed: false,
+      status: { $ne: TaskStatus.OVERDUE },
+    }).exec();
+  }
+
+  async getCompletedTasksCount(userId: string): Promise<number> {
+    return this.taskModel.countDocuments({ userId, completed: true }).exec();
   }
 }

@@ -8,20 +8,17 @@ import { PlusIcon, FunnelIcon } from '@heroicons/react/24/outline';
 export default function HomePage() {
   const { 
     data: tasksResponse, 
-    isLoading, 
-    error,
-    isError
+    isLoading: isLoadingRecentTasks, 
+    error: errorRecentTasks,
+    isError: isErrorRecentTasks
   } = useQuery({
     queryKey: ['recent-tasks'],
     queryFn: async () => {
       try {
-        console.log('Fetching tasks...');
         const response = await tasksApi.getTasks({ limit: '5', sort: '-dueDate' });
-        console.log('Tasks response:', response);
         return response;
       } catch (err) {
-        console.error('Error in queryFn:', err);
-        // Return empty result instead of throwing to prevent UI crash
+        console.error('Error fetching recent tasks:', err);
         return {
           data: [],
           meta: { total: 0, page: 1, limit: 5, totalPages: 0 }
@@ -32,11 +29,39 @@ export default function HomePage() {
     refetchOnWindowFocus: false
   });
 
-  // Safely extract tasks and total count
+  const { 
+    data: taskSummary, 
+    isLoading: isLoadingSummary, 
+    error: errorSummary,
+    isError: isErrorSummary
+  } = useQuery({
+    queryKey: ['task-summary'],
+    queryFn: async () => {
+      try {
+        const response = await tasksApi.getTaskSummary();
+        return response;
+      } catch (err) {
+        console.error('Error fetching task summary:', err);
+        return {
+          totalTasks: 0,
+          dueSoonTasks: 0,
+          completedTasks: 0
+        };
+      }
+    },
+    retry: 1,
+    refetchOnWindowFocus: false
+  });
+
   const tasks = tasksResponse?.data || [];
-  const totalTasks = tasksResponse?.meta?.total || 0;
+  const totalTasks = taskSummary?.totalTasks || 0;
+  const dueSoonTasks = taskSummary?.dueSoonTasks || 0;
+  const completedTasks = taskSummary?.completedTasks || 0;
+
+  const isLoading = isLoadingRecentTasks || isLoadingSummary;
+  const isError = isErrorRecentTasks || isErrorSummary;
+  const error = errorRecentTasks || errorSummary;
   
-  // Log for debugging
   React.useEffect(() => {
     if (isError) {
       console.error('Error in useQuery:', error);
@@ -124,16 +149,7 @@ export default function HomePage() {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {isLoading
-                        ? '...'
-                        : tasks.filter(
-                            (task) =>
-                              task.dueDate &&
-                              new Date(task.dueDate) > new Date() &&
-                              new Date(task.dueDate) <=
-                                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) &&
-                              !task.completed
-                          ).length}
+                      {isLoading ? '...' : dueSoonTasks}
                     </div>
                   </dd>
                 </dl>
@@ -178,9 +194,7 @@ export default function HomePage() {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {isLoading
-                        ? '...'
-                        : tasks.filter((task) => task.completed).length}
+                      {isLoading ? '...' : completedTasks}
                     </div>
                   </dd>
                 </dl>
